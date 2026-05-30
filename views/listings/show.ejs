@@ -15,6 +15,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/rating.css" rel="stylesheet">
+<!-- <link href="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.js"></script> -->
+<script src="https://cdn.maptiler.com/maptiler-sdk-js/v3.0.1/maptiler-sdk.umd.min.js"></script>
+<link href="https://cdn.maptiler.com/maptiler-sdk-js/v3.0.1/maptiler-sdk.css" rel="stylesheet" />
+
 <style>
     .navbar,h1{
         background-color: white;
@@ -96,6 +102,12 @@ h3{
 .btns{
     display: flex;
 }
+/* MAP */
+#map {
+    width: 100%; 
+    height: 500px; 
+    
+}
 </style>
 
 </head>
@@ -124,12 +136,14 @@ h3{
     </div>
   </div>
 </nav>
+
+
     <div class="row  "  >
         <div class="col-8 offset-2">
     <h3> <b><%= listing.title %></b> </h3>
     </div>
     <div class="card col-6 offset-3 show-card listing-card ">
-        <img src="<%= listing.image %>" alt="listing_image" class="card-img-top show-image">
+        <img src="<%= listing.image.url %>" alt="listing_image" class="card-img-top show-image">
         <div class="card-body">
             <p class="card-text"><b>Owned by - </b> <i><%= listing.owner.username %></i> </p>
             <p class="card-text"><%= listing.description %></p>
@@ -160,15 +174,16 @@ h3{
     </div>
     <% } %>
     <div class="col-8 offset-3 mb-3">
-        <hr>
+
         <% if(currUser) {%>
+            <hr>
         <h4>Leave a Review </h4>
         <form action="/listings/<%= listing.id %>/reviews"
             method="POST"
             novalidate
             class="needs-validation"
             >
-            <div class="mb-3 mt-3">
+            <!-- <div class="mb-3 mt-3">
                 <label for="rating" class="form-label">Rating</label>
                 <input type="range"
                   min="1" max="5"
@@ -176,7 +191,26 @@ h3{
                   name="review[rating]" 
                   class="form-range" 
                   required>
+            </div> -->
+            <div>
+                <legend >Rating :</legend>
+                <fieldset class="starability-slot">
+              
+                <input type="radio" id="no-rate" class="input-no-rate"  min="1" max="5"id="rating" name="review[rating]"   value="0" checked aria-label="No rating." />
+                <input type="radio" id="first-rate1"  min="1" max="5"id="rating" name="review[rating]"   value="1" />
+                <label for="first-rate1" min="1" max="5" id="rating" name="review[rating]"  title="Terrible">1 star</label>
+                <input type="radio" id="first-rate2"  min="1" max="5"id="rating" name="review[rating]"   value="2" />
+                <label for="first-rate2"  min="1" max="5"id="rating" name="review[rating]"  title="Not good">2 stars</label>
+                <input type="radio" id="first-rate3" min="1" max="5"id="rating" name="review[rating]"   value="3" />  
+                <label for="first-rate3"   min="1" max="5"id="rating" name="review[rating]"  title="Average">3 stars</label>
+                <input type="radio" id="first-rate4"  min="1" max="5"id="rating" name="review[rating]"   value="4" />  
+                <label for="first-rate4"  min="1" max="5"id="rating" name="review[rating]"   min="1" max="5" title="Very good">4 stars</label>
+                <input type="radio" id="first-rate5"  min="1" max="5"id="rating"  name="review[rating]"   value="5" /> 
+                <label for="first-rate5"  min="1" max="5  id="rating"   name="review[rating]"  title="Amazing">5 stars</label>
+            </fieldset>
             </div>
+            
+            
             <div class="mb-3 mt-3">
                 <label for="comment" class="form-label">Comments</label>
                 <textarea name="review[comment]" 
@@ -187,18 +221,20 @@ h3{
                 </div>
             </div>
             <button class="btn btn-outline-dark"> Submit</button>
-        </form>
+        </form> <hr>
         <% } %>
-        <hr>
-        <hr>
-        <p><b>All Review</b></p>
+        
+        <% if(listing.reviews.length>0) { %>
         <div class="row">
+        <p><b>All Review</b></p>
         <% for(review of listing.reviews){ %>
                 <div class="card col-5 mb-3 ms-3">
                     <div class="card-body">
                         <h5 class="card-title"> <%=review.author.username %></h5>
+                         <p class="starability-result card-text" data-rating="<%= review.rating %>"> </p>
                         <p class="card-text"> <%= review.comment %></p>
-                        <p class="card-text"> 	&#11088;<%= review.rating %>stars</p>
+                        <!-- <p class="card-text"> 	&#11088;<%= review.rating %>stars</p> -->
+                    
                     </div>
                     <form
                     action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
@@ -210,14 +246,31 @@ h3{
                 </div>
         <% } %>
         </div>
-
-
-        
+        <% } %>
     </div>
+    <div class="col-6 offset-3 mb-3">
+    <h3>Where you'll be</h3>
+    <div id="map"></div>
+</div>
+
+<script>
+    const mapToken = "<%= process.env.MAP_TOKEN %>";
+    
+    // Safety Check: Only parse if geometry and coordinates exist
+    const coordinates = <%- (listing.geometry && listing.geometry.coordinates) ? JSON.stringify(listing.geometry.coordinates) : '[77.209, 28.613]' %>;
+    
+    // If you want to hide the map entirely for old listings:
+    const hasCoords = <%- (listing.geometry && listing.geometry.coordinates) ? true : false %>;
+</script>
+<script src="/js/map.js"></script>
+
+
 
 </div>
 
-<script src="/js/script.js"></script>
+
+
+
 </body>
 <!-- ------------------------------------------------ -->
 <!-- ------------------------------------------------- -->
@@ -237,3 +290,5 @@ h3{
         </div>
     </div>
 </footer>
+
+

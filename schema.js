@@ -12,10 +12,19 @@ module.exports.listingSchema= Joi.object({
 
 });
 
+// module.exports.reviewSchema = Joi.object({
+//     review: Joi.object({
+//         rating: Joi.number().required().min(1).max(5),
+//         comment : Joi.string().required(),
+// }).required()
+
+// });
+
 module.exports.reviewSchema = Joi.object({
     review: Joi.object({
+        // Adding .required() ensures it's there,
+        // and Joi will attempt to cast the string "3" to the number 3.
         rating: Joi.number().required().min(1).max(5),
-        comment : Joi.string().required(),
-}).required()
-
+        comment: Joi.string().required(),
+    }).required(),
 });

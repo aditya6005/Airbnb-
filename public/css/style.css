@@ -118,3 +118,11 @@ body{
     height: 30vh;
 }
 
+
+/* Map */
+#map {
+    height :100px;
+    width: 100px;
+
+}
+

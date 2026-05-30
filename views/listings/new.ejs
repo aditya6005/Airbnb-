@@ -87,9 +87,11 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
-        <a class="nav-link "  href="/">Home</a>
+        <!-- <a class="nav-link "  href="/">Home</a>
         <a class="nav-link" href="/listings">All Listings</a>
-        <a class="nav-link" href="/listings/new">Add new Listings</a>
+        <a class="nav-link" href="/listings/new">Add new Listings</a> -->
+        <a class="nav-link" href="/listings">Explore</a>
+
         
       </div>
     </div>
@@ -102,7 +104,7 @@
     <div class="col-8 offset-2">
         <br> <br>
         <h3>create a new listing</h3>
-        <form method="POST" action="/listings"  >
+        <form method="POST" action="/listings" class="needs-validation" enctype="multipart/form-data"  >
         <div class="mb-3">
             <label for="title" 
             class="form-label">Title</label>
@@ -110,7 +112,8 @@
             placeholder="enter title" 
             type="text" 
             class="form-control" 
-            required >
+            required 
+            >
             <div class="invalid-feedback">Example invalid select feedback</div>
         </div>
         <div class="mb-3">
@@ -124,7 +127,7 @@
             <div class="invalid-feedback">please enter the short description</div>
         </div>
         
-        <div class="mb-3">
+        <!-- <div class="mb-3">
             <label for="image" 
             class="form-label" >Image url</label>
             <input 
@@ -132,7 +135,18 @@
             placeholder="enter image URL/Link" 
             type="text" 
             class="form-control">
+        </div> --> 
+         <div class="mb-3">
+            <label for="image" 
+            class="form-label" >Upload lisiting image </label>
+            <input 
+            name="listing[image]" 
+            type="file" 
+            class="form-control">
+            
         </div>
+        
+
         <div class="row">
             <div class="mb-3 col-md-4">
             <label for="price" 
